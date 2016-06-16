@@ -1,0 +1,52 @@
+#!/bin/sh
+#
+# EYN Lemonbar - forked from http://blog.z3bra.org/2014/04/meeting-at-the-bar.html
+
+clock() {
+    date '%H:%M +%Y-%m-%d'
+}
+
+volume() {
+    pactl list sinks | grep '^[[:space:]]Volume:'|head -n $(( $SINK + 1 )) | tail -n 1 | sed -e 's,.* \([0-9][0-9]*\)%.*,\1,'
+    # I personally use PulseAudio, uncomment if you use alsamixer
+    # amixer get Master | sed -n 'N;s/^.*\[\([0-9]\+%\).*$/\1/p'
+}
+
+temp() {
+    sensors | grep "CPUTIN" | awk '{print $2}' | cut -d '+' -f 2 # Get CPU temperature
+}
+
+memused() {
+    read t f <<< `grep -E 'Mem(Total|Free)' /proc/meminfo |awk '{print $2}'`
+    bc <<< "scale=2; 100 - $f / $t * 100" | cut -d. -f1
+}
+
+network() {
+    read lo int1 int2 <<< `ip link | sed -n 's/^[0-9]: \(.*\):.*$/\1/p'`
+    if iwconfig $int1 >/dev/null 2>&1; then
+        wifi=$int1
+        eth0=$int2
+    else
+        wifi=$int2
+        eth0=$int1
+    fi
+    ip link show $eth0 | grep 'state UP' >/dev/null && int=$eth0 ||int=$wifi
+
+    #int=eth0
+
+    ping -c 1 8.8.8.8 >/dev/null 2>&1 && 
+        echo "$int connected" || echo "$int disconnected"
+}
+
+# This loop will fill a buffer with our infos, and output it to stdout.
+while :; do
+    buf=""
+    buf="${buf} %{l}VOL: $(volume)%" # You can remove the '%' if you use alsa
+    buf="${buf} %{c}TIME: $(clock)" # Current time
+    buf="${buf} %{r}NET: $(network) " # If network is connected
+    buf="${buf} CPU: $(temp) " # Current CPU temperature
+    buf="${buf} RAM: $(memused)%" # % of used RAM
+
+    echo $buf
+    sleep 1 # The HUD will be updated every second
+done

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+norm_bg="#6699ff"
+norm_fg="#fff"
+sel_bg="#6699ff"
+sel_fg="#fff"
+font_name="roboto-light:size=14"
+dim_amount="0.25"
+lines=5
+line_height=25
+width=600
+time=$(date +%T)
+prompt="$time"
+
+# Dynamically center the menu on the screen
+let "x_pos = ($(disdim -w) / 2) - ($width / 2)"
+let "y_pos = ($(disdim -h) / 2) - (($lines * $line_height) * 2)"
+
+dmenu_run -nb $norm_bg -nf $norm_fg -sb $sel_bg -sf $sel_fg -fn $font_name -dim $dim_amount -l $lines -h $line_height -x $x_pos -y $y_pos -w $width -p $prompt
