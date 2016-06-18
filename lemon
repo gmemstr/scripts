@@ -3,7 +3,7 @@
 # EYN Lemonbar - forked from http://blog.z3bra.org/2014/04/meeting-at-the-bar.html
 
 clock() {
-    date '%H:%M +%Y-%m-%d'
+    date '+%Y-%m-%d %H:%M'
 }
 
 volume() {
